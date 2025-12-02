@@ -1,4 +1,163 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define TAM_FILA 5   // Tamanho fixo da fila circular
+
+// -------------------------------------------------------------
+// Struct que representa uma peça do Tetris
+// nome = tipo da peça (I, O, T, L, S, Z, J)
+// id   = identificador numérico único
+// -------------------------------------------------------------
+typedef struct {
+    char nome;
+    int id;
+} Peca;
+
+
+// -------------------------------------------------------------
+// Variáveis globais da fila circular:
+// fila[]  -> armazena as peças
+// inicio  -> índice do primeiro elemento (dequeue)
+// fim     -> índice do último elemento (enqueue)
+// count   -> quantidade atual de peças na fila (sempre 0 a 5)
+// -------------------------------------------------------------
+Peca fila[TAM_FILA];
+int inicio = 0;
+int fim = -1;
+int count = 0;
+int idGlobal = 1;
+
+
+// -------------------------------------------------------------
+// Função gerarPeca()
+// Gera automaticamente uma peça com nome aleatório de Tetris
+// Atribui também um ID único incrementado globalmente
+// -------------------------------------------------------------
+Peca gerarPeca() {
+    char tipos[7] = {'I','O','T','L','J','S','Z'};
+    Peca p;
+    p.nome = tipos[rand() % 7];
+    p.id = idGlobal++;
+    return p;
+}
+
+
+// -------------------------------------------------------------
+// Função enqueue()
+// Insere uma nova peça no final da fila circular
+// Respeita reaproveitamento do espaço mod TAM_FILA
+// -------------------------------------------------------------
+void enqueue(Peca p) {
+    if (count == TAM_FILA) {
+        printf("\n[FILA CHEIA] Não é possível inserir.\n");
+        return;
+    }
+
+    fim = (fim + 1) % TAM_FILA;
+    fila[fim] = p;
+    count++;
+    printf("\nPeça inserida: %c (%d)\n", p.nome, p.id);
+}
+
+
+// -------------------------------------------------------------
+// Função dequeue()
+// Remove a peça da frente da fila circular
+// Avança o índice "inicio" de forma circular
+// -------------------------------------------------------------
+void dequeue() {
+    if (count == 0) {
+        printf("\n[FILA VAZIA] Nenhuma peça para jogar.\n");
+        return;
+    }
+
+    Peca removida = fila[inicio];
+    inicio = (inicio + 1) % TAM_FILA;
+    count--;
+
+    printf("\nPeça jogada/removida: %c (%d)\n", removida.nome, removida.id);
+}
+
+
+// -------------------------------------------------------------
+// Função visualizar()
+// Mostra o estado atual da fila circular em ordem lógica
+// -------------------------------------------------------------
+void visualizar() {
+    printf("\n===== FILA ATUAL =====\n");
+
+    if (count == 0) {
+        printf("(vazia)\n");
+        return;
+    }
+
+    int idx = inicio;
+    for (int i = 0; i < count; i++) {
+        printf("[%d] %c (%d)\n", i, fila[idx].nome, fila[idx].id);
+        idx = (idx + 1) % TAM_FILA;
+    }
+    printf("======================\n");
+}
+
+
+// -------------------------------------------------------------
+// Função inicializarFila()
+// Preenche a fila com 5 peças geradas automaticamente
+// -------------------------------------------------------------
+void inicializarFila() {
+    for (int i = 0; i < TAM_FILA; i++) {
+        enqueue(gerarPeca());
+    }
+}
+
+
+// -------------------------------------------------------------
+// Função principal – loop do menu
+// -------------------------------------------------------------
+int main() {
+    srand(time(NULL));  // Seed para nomes aleatórios
+
+    printf("Inicializando a fila com 5 peças...\n");
+    inicializarFila();
+    visualizar();
+
+    int opcao;
+
+    do {
+        printf("\n=== MENU TETRIS STACK ===\n");
+        printf("1 - Jogar/Remover peça (dequeue)\n");
+        printf("2 - Inserir nova peça (enqueue)\n");
+        printf("3 - Visualizar fila\n");
+        printf("0 - Sair\n");
+        printf("Escolha uma opção: ");
+        scanf("%d", &opcao);
+
+        switch(opcao) {
+            case 1:
+                dequeue();
+                visualizar();
+                break;
+            case 2:
+                enqueue(gerarPeca());
+                visualizar();
+                break;
+            case 3:
+                visualizar();
+                break;
+            case 0:
+                printf("\nEncerrando...\n");
+                break;
+            default:
+                printf("\nOpção inválida!\n");
+        }
+
+    } while (opcao != 0);
+
+    return 0;
+}
+
+/*#include <stdio.h>
 
 // Desafio Tetris Stack
 // Tema 3 - Integração de Fila e Pilha
